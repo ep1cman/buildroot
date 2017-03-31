@@ -1,0 +1,36 @@
+DAEMON_SBIN=/usr/sbin/hostapd
+DAEMON_DEFS=/etc/default/hostapd
+DAEMON_CONF=/etc/hostapf.conf
+NAME=hostapd
+PIDFILE=/var/run/hostapd.pid
+
+test -x "$DAEMON_SBIN"  || exit 0
+test -x "$DAEMON_CONF"  || exit 0
+
+DAEMON_OPTS="-B -P $PIDFILE $DAEMON_OPTS $DAEMON_CONF"
+
+
+case "$1" in
+  start)
+    echo "Starting $NAME: "
+    start-stop-daemon --start --oknodo --quiet --exec "$DAEMON_SBIN" \
+        --pidfile "$PIDFILE" -- $DAEMON_OPTS >/dev/null
+    ;;
+  stop)
+    echo "Stopping $NAME: "
+    start-stop-daemon --stop --oknodo --quiet --exec "$DAEMON_SBIN" \
+        --pidfile "$PIDFILE"
+    ;;
+  restart)
+    $0 stop
+    sleep 8
+    $0 start
+    ;;
+  *)
+    N=/etc/init.d/$NAME
+    echo "Usage: $N {start|stop|restart}" >&2
+    exit 1
+    ;;
+esac
+
+exit 0

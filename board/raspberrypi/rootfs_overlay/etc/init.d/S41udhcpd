@@ -1,0 +1,30 @@
+DAEMON=/usr/sbin/udhcpd
+NAME=udhcpd
+DHCPD_OPTS="-S" # Additional options given to the server
+
+test -x $DAEMON || exit 0
+
+case "$1" in
+  start)
+    echo -n "Starting $NAME: "
+    start-stop-daemon --start --verbose --pidfile /var/run/$NAME.pid \
+        --oknodo --exec $DAEMON -- $DHCPD_OPTS
+    ;;
+  stop)
+    echo -n "Stopping $NAME: "
+    start-stop-daemon --stop --verbose --pidfile /var/run/$NAME.pid \
+        --oknodo --exec $DAEMON
+    ;;
+  restart|force-reload)
+    $0 stop
+    sleep 1
+    $0 start    
+    ;;
+  *)
+    N=/etc/init.d/$NAME
+    echo "Usage: $N {start|stop|restart|force-reload}" >&2
+    exit 1
+    ;;
+esac
+
+exit 0
