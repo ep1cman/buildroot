@@ -1,30 +1,43 @@
+#!/bin/sh
 DAEMON=/usr/sbin/udhcpd
 NAME=udhcpd
-DHCPD_OPTS="-S" # Additional options given to the server
+DHCPD_OPTS="/etc/udhcpd.conf" # Additional options given to the server
 
 test -x $DAEMON || exit 0
+touch /var/lib/misc/udhcpd.leases
+start() {
+    printf  "Starting $NAME: "
+    $DAEMON $DHCPD_OPTS
+#    umask 077
+#    start-stop-daemon -S -q -p --pidfile /var/run/$NAME.pid \
+#        --exec $DAEMON -- $DHCPD_OPTS
+#    [ $? = 0 ] && echo "OK" || echo "FAIL"
+}
+
+stop() {
+    printf  "Stopping $NAME: "
+#    umask 077
+#    start-stop-daemon -K -q -p /var/run/$NAME.pid \
+#    [ $? = 0 ] && echo "OK" || echo "FAIL"
+    killall $NAME
+}
 
 case "$1" in
   start)
-    echo -n "Starting $NAME: "
-    start-stop-daemon --start --verbose --pidfile /var/run/$NAME.pid \
-        --oknodo --exec $DAEMON -- $DHCPD_OPTS
+    start
     ;;
   stop)
-    echo -n "Stopping $NAME: "
-    start-stop-daemon --stop --verbose --pidfile /var/run/$NAME.pid \
-        --oknodo --exec $DAEMON
+    stop
     ;;
   restart|force-reload)
-    $0 stop
+    stop
     sleep 1
-    $0 start    
+    start    
     ;;
   *)
-    N=/etc/init.d/$NAME
     echo "Usage: $N {start|stop|restart|force-reload}" >&2
     exit 1
     ;;
 esac
 
-exit 0
+exit $?
